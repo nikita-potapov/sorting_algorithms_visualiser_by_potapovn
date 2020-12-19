@@ -1,37 +1,41 @@
 from math import ceil, floor
 
 
-def bubble_sort(array, *args):
+def bubble_sort(array, sorting_history, *args):
     # Сортировка пузырьком
     size = len(array)
     for i in range(size):
         for j in range(size - i - 1):
             # todo
-            # handleDrawing(array, j, j + 1, -1, -1)
+            sorting_history(array, j, j + 1, -1, -1)
             if array[j] > array[j + 1]:
                 array[j], array[j + 1] = array[j + 1], array[j]
-    return array
+    sorting_history(array, -1, -1, -1, -1)
+    return
 
 
-def shake_sort(array, *args):
+def shake_sort(array, sorting_history, *args):
     # Сортировка перемешиванием
     left = 0
     right = len(array) - 1
     while left <= right:
         for i in range(left, right, 1):
             # todo
+            sorting_history(array, i, i + 1, -1, -1)
             if array[i] > array[i + 1]:
                 array[i], array[i + 1] = array[i + 1], array[i]
         right -= 1
         for i in range(right, left, -1):
             # todo
+            sorting_history(array, -1, -1, i, i + 1)
             if array[i - 1] > array[i]:
                 array[i], array[i - 1] = array[i - 1], array[i]
         left += 1
-    return array
+    sorting_history(array, -1, -1, -1, -1)
+    return
 
 
-def comb_sort(array, *args):
+def comb_sort(array, sorting_history, *args):
     # Сортировка расческой
 
     def get_gap(prev_gap) -> int:
@@ -50,13 +54,14 @@ def comb_sort(array, *args):
 
         for idx in range(0, size - gap):
             # todo
-            # handleDrawing(array, idx, idx + gap, -1, -1)
+            sorting_history(array, idx, idx + gap, -1, -1)
             if array[idx] > array[idx + gap]:
                 array[idx], array[idx + gap] = array[idx + gap], array[idx]
                 swapped = True
+    sorting_history(array, -1, -1, -1, -1)
 
 
-def insert_sort(array, *args):
+def insert_sort(array, sorting_history, *args):
     # Сортировка вставками
     size = len(array)
     for i in range(1, size):
@@ -64,13 +69,14 @@ def insert_sort(array, *args):
         key = array[i]
         while j >= 0 and array[j] > key:
             # todo
-            # handleDrawing(array, j, -1, i, -1)
+            sorting_history(array, j, -1, i, -1)
             array[j + 1] = array[j]
             j -= 1
         array[j + 1] = key
+    sorting_history(array, -1, -1, -1, -1)
 
 
-def shell_sort(array, *args, gaps_type="ciura"):
+def shell_sort(array, sorting_history, *args, gaps_type="ciura"):
     # Сортировка Шелла
     def get_shell_gaps(n):
         gaps, k = [], 0
@@ -115,15 +121,16 @@ def shell_sort(array, *args, gaps_type="ciura"):
             temp, j = array[i], i
             while j >= gap and array[j - gap] > temp:
                 # todo
-                # handleDrawing(array, j, j - gap, -1, -1)
+                sorting_history(array, j, j - gap, -1, -1)
                 array[j] = array[j - gap]
                 j -= gap
             # todo
-            # handleDrawing(array, -1, -1, i, j)
+            sorting_history(array, -1, -1, i, j)
             array[j] = temp
+    sorting_history(array, -1, -1, -1, -1)
 
 
-def binary_insertion_sort(array, *args):
+def binary_insertion_sort(array, sorting_history, *args):
     # Сортировка бинарным деревом
 
     def binary_search(arr, val, start, end, current):
@@ -138,7 +145,7 @@ def binary_insertion_sort(array, *args):
 
         mid = round((start + end) / 2)
         # todo
-        # handleDrawing(arr, start, end, mid, current)
+        sorting_history(arr, start, end, mid, current)
         if arr[mid] < val:
             return binary_search(arr, val, mid + 1, end, current)
         elif arr[mid] > val:
@@ -150,22 +157,24 @@ def binary_insertion_sort(array, *args):
         val = array[i]
         j = binary_search(array, val, 0, i - 1, i)
         array[0:len(array)] = array[:j] + [val] + array[j:i] + array[i + 1:]
+    sorting_history(array, -1, -1, -1, -1)
 
 
-def selection_sort(array, *args):
+def selection_sort(array, sorting_history, *args):
     # Сортировка выбором
     size = len(array)
     for i in range(size - 1):
         small_index = i
         for j in range(i, size):
             # todo
-            # handleDrawing(array, j, -1, i, -1)
+            sorting_history(array, j, -1, i, -1)
             if array[j] < array[small_index]:
                 small_index = j
         array[i], array[small_index] = array[small_index], array[i]
+    sorting_history(array, -1, -1, -1, -1)
 
 
-def heap_sort(array, *args):
+def heap_sort(array, sorting_history, *args):
     # Пирамидальная сортировка (кучей)
 
     def heapify(array, count):
@@ -187,7 +196,7 @@ def heap_sort(array, *args):
                 return
             else:
                 # todo
-                # handleDrawing(array, root, swap, -1, -1)
+                sorting_history(array, root, swap, -1, -1)
                 array[root], array[swap] = array[swap], array[root]
                 root = swap
 
@@ -195,58 +204,59 @@ def heap_sort(array, *args):
     end = len(array) - 1
     while end > 0:
         # todo
-        # handleDrawing(array, -1, -1, 0, end, )
+        sorting_history(array, -1, -1, 0, end, )
         array[end], array[0] = array[0], array[end]
         end -= 1
         sift_down(array, 0, end)
+    sorting_history(array, -1, -1, -1, -1)
 
 
-def quick_sort(array, left, right):
+def quick_sort(array, sorting_history, left, right, *args):
     # Быстрая сортировка
     if left >= right:
+        sorting_history(array, -1, -1, -1, -1)
         return
     index = left
     for j in range(left, right):
         # todo
-        # handleDrawing(array, j, right, index, -1)
+        sorting_history(array, j, right, index, -1)
         if array[j] < array[right]:
             array[j], array[index] = array[index], array[j]
             index += 1
     array[index], array[right] = array[right], array[index]
-    quick_sort(array, index + 1, right)
-    quick_sort(array, left, index - 1)
+    quick_sort(array, sorting_history, index + 1, right)
+    quick_sort(array, sorting_history, left, index - 1)
 
 
-def merge_sort(array, left, right):
-    # Сортировка слиянием
+def merge_sort(array, sorting_history, left, right):
     def merge(array, left, mid, right):
-        # Функция для слияния
-        left = array[left:mid + 1]
-        right = array[mid + 1:right + 1]
+        nonlocal sorting_history
+        L = array[left:mid + 1]
+        R = array[mid + 1:right + 1]
         i = 0
         j = 0
         k = left
-        while i < len(left) and j < len(right):
-            # todo
-            # handleDrawing(array, left+i, mid+j, left, right)
-            if left[i] < right[j]:
-                array[k] = left[i]
+        while i < len(L) and j < len(R):
+            sorting_history(array, left + i, mid + j, left, right)
+            if L[i] < R[j]:
+                array[k] = L[i]
                 i += 1
             else:
-                array[k] = right[j]
+                array[k] = R[j]
                 j += 1
             k += 1
-        while i < len(left):
-            array[k] = left[i]
+        while i < len(L):
+            array[k] = L[i]
             i += 1
             k += 1
-        while j < len(right):
-            array[k] = right[j]
+        while j < len(R):
+            array[k] = R[j]
             j += 1
             k += 1
 
     if left < right:
         mid = int((left + right) / 2)
-        merge_sort(array, left, mid)
-        merge_sort(array, mid + 1, right)
+        merge_sort(array, sorting_history, left, mid)
+        merge_sort(array, sorting_history, mid + 1, right)
         merge(array, left, mid, right)
+        sorting_history(array, -1, -1, -1, -1)
