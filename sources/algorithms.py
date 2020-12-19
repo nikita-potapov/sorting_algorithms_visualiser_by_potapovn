@@ -1,5 +1,6 @@
 from math import ceil, floor
 
+count = 0
 
 def bubble_sort(array, sorting_history, *args):
     # Сортировка пузырьком
@@ -38,7 +39,7 @@ def shake_sort(array, sorting_history, *args):
 def comb_sort(array, sorting_history, *args):
     # Сортировка расческой
 
-    def get_gap(prev_gap) -> int:
+    def get_gap(prev_gap):
         gap = int(prev_gap / 1.3)
         if gap < 1:
             return 1
@@ -55,6 +56,7 @@ def comb_sort(array, sorting_history, *args):
         for idx in range(0, size - gap):
             # todo
             sorting_history(array, idx, idx + gap, -1, -1)
+
             if array[idx] > array[idx + gap]:
                 array[idx], array[idx + gap] = array[idx + gap], array[idx]
                 swapped = True
@@ -78,6 +80,9 @@ def insert_sort(array, sorting_history, *args):
 
 def shell_sort(array, sorting_history, *args, gaps_type="ciura"):
     # Сортировка Шелла
+
+    # Функции для получения элементов различных последовательностей расстояний
+    # между сравниваемыми элементами в сортируемом массиве
     def get_shell_gaps(n):
         gaps, k = [], 0
         get_gaps_sequence_element = lambda k: floor(n / 2 ** k)
@@ -107,7 +112,6 @@ def shell_sort(array, sorting_history, *args, gaps_type="ciura"):
             k += 1
         return gaps
 
-    # different gap sequences
     GAPS_TYPES = {
         "ciura": get_ciura_gaps,
         "shell": get_shell_gaps,
@@ -139,7 +143,6 @@ def binary_insertion_sort(array, sorting_history, *args):
                 return start
             else:
                 return start + 1
-
         if start > end:
             return start
 
@@ -204,7 +207,7 @@ def heap_sort(array, sorting_history, *args):
     end = len(array) - 1
     while end > 0:
         # todo
-        sorting_history(array, -1, -1, 0, end, )
+        sorting_history(array, -1, -1, 0, end)
         array[end], array[0] = array[0], array[end]
         end -= 1
         sift_down(array, 0, end)
@@ -260,3 +263,33 @@ def merge_sort(array, sorting_history, left, right):
         merge_sort(array, sorting_history, mid + 1, right)
         merge(array, left, mid, right)
         sorting_history(array, -1, -1, -1, -1)
+
+
+def counting_sort(array, sorting_history, *args):
+    # Сортировка подсчетом
+    size = len(array)
+    array_copy = array.copy()
+    count_array = [0 for _ in range(max(array_copy) + 2)]
+    for i in range(size):
+        count_array[array_copy[i]] += 1
+    for i in range(1, len(count_array)):
+        count_array[i] += count_array[i - 1]
+    for i in range(0, size):
+        sorting_history(array, count_array[array_copy[size - i - 1]] - 1, -1, size - i - 1, -1)
+        array[count_array[array_copy[size - i - 1]] - 1] = array_copy[size - i - 1]
+        count_array[array_copy[size - i - 1]] -= 1
+    sorting_history(array, -1, -1, -1, -1)
+
+
+def gnome_sort(array, sorting_history, *args):
+    # гномья сортировка
+    i, size = 0, len(array)
+    while i < size:
+        if array[i - 1] <= array[i] or i == 0:
+            sorting_history(array, i, i - 1, -1, -1)
+            i += 1
+        else:
+            sorting_history(array, i, i - 1, -1, -1)
+            array[i - 1], array[i] = array[i], array[i - 1]
+            i -= 1
+    sorting_history(array, -1, -1, -1, -1)

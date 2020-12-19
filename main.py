@@ -17,7 +17,9 @@ SORTING_FUNCTIONS = {
     'выбором': selection_sort,
     'пирамидальная': heap_sort,
     'быстрая': quick_sort,
-    'слиянием': merge_sort
+    'слиянием': merge_sort,
+    'подсчетом': counting_sort,
+    'гномья': gnome_sort
 }
 
 PLAYING = 2
@@ -28,6 +30,19 @@ ERROR = 6
 
 DELAY = 70
 MIN_BAR_WIDTH = 2
+
+
+class LoggedList(list):
+    def __init__(self, *args, **kwargs):
+        super(LoggedList, self).__init__(*args, **kwargs)
+        self.get_item_count = 0
+
+    def __getitem__(self, item):
+        self.get_item_count += 1
+        return super(LoggedList, self).__getitem__(item)
+
+    def get_accesses(self):
+        return self.get_item_count
 
 
 class Ui_MainWindow(object):
@@ -42,7 +57,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
+        self.spacerItem = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Expanding,
+                                           QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(self.spacerItem)
+
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                           QtWidgets.QSizePolicy.Minimum)
+
         self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setSizePolicy(sizePolicy)
         self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)
         self.access_to_list_count = QtWidgets.QLineEdit(self.centralwidget)
@@ -54,24 +77,17 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addLayout(self.horizontalLayout)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.label_2 = QtWidgets.QLabel(self.centralwidget)
-        self.label_2.setObjectName("label_2")
-        self.horizontalLayout_2.addWidget(self.label_2)
-        self.comparsions_count = QtWidgets.QLineEdit(self.centralwidget)
-        self.comparsions_count.setAlignment(
-            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.comparsions_count.setReadOnly(True)
-        self.comparsions_count.setObjectName("comparsions_count")
-        self.horizontalLayout_2.addWidget(self.comparsions_count)
+        # self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        # self.label_2.setObjectName("label_2")
+        # self.horizontalLayout_2.addWidget(self.label_2)
+        # self.comparsions_count = QtWidgets.QLineEdit(self.centralwidget)
+        # self.comparsions_count.setAlignment(
+        #     QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        # self.comparsions_count.setReadOnly(True)
+        # self.comparsions_count.setObjectName("comparsions_count")
+        # self.horizontalLayout_2.addWidget(self.comparsions_count)
         self.horizontalLayout_4.addLayout(self.horizontalLayout_2)
-        self.line = QtWidgets.QFrame(self.centralwidget)
-        self.line.setFrameShape(QtWidgets.QFrame.VLine)
-        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.line.setObjectName("line")
-        self.horizontalLayout_4.addWidget(self.line)
-        self.btn_info_about_algorithm = QtWidgets.QPushButton(self.centralwidget)
-        self.btn_info_about_algorithm.setObjectName("btn_info_about_algorithm")
-        self.horizontalLayout_4.addWidget(self.btn_info_about_algorithm)
+
         self.verticalLayout.addLayout(self.horizontalLayout_4)
 
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
@@ -101,7 +117,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.slider_delay)
 
         self.verticalLayout.addLayout(self.horizontalLayout_5)
-
 
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
@@ -159,8 +174,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Алгоритмы сортировки"))
         self.label.setText(_translate("MainWindow", "Доступов к массиву:"))
-        self.label_2.setText(_translate("MainWindow", "Сравнений:"))
-        self.btn_info_about_algorithm.setText(_translate("MainWindow", "Справка"))
+        # self.label_2.setText(_translate("MainWindow", "Сравнений:"))
         self.canvas_label.setText(_translate("MainWindow", ""))
         self.btn_reset.setText(_translate("MainWindow", "Сброс"))
         self.btn_play_pause.setText(_translate("MainWindow", "Старт"))
@@ -179,6 +193,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.btn_play_pause.clicked.connect(self.btn_play_pause_clicked)
         self.btn_reset.clicked.connect(self.btn_reset_clicked)
+        self.action_2.triggered.connect(self.initialize_array)
+        self.action_exit.triggered.connect(sys.exit)
+
 
         self.selecter_sorting_algorithm.currentIndexChanged.connect(self.change_sorting_algorithm)
 
@@ -205,33 +222,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.state = WAIT
 
-        self.array = None
-        self.initialize_array()
-
         self.history_of_sorting = []
 
-        self.do_paint = False
-
-        self.change_sorting_algorithm()
+        self.array = None
         self.change_array_size()
-        self.paint()
+        self.initialize_array()
 
     def paintEvent(self, event):
-        if self.do_paint:
-            qp = QPainter()
-            qp.begin(self)
+        qp = QPainter()
+        qp.begin(self)
 
-            self.draw_bars(qp)
+        self.draw_bars(qp)
 
-            qp.end()
+        qp.end()
 
     def paint(self):
-        self.do_paint = True
         self.repaint()
-        self.do_paint = False
 
     def btn_play_pause_clicked(self):
         if self.btn_play_pause.text() == 'Старт':
+            if self.slider_steps.value() == self.slider_steps.maximum():
+                self.slider_steps.setValue(self.slider_steps.minimum())
             self.btn_play_pause.setText('Пауза')
             self.selecter_sorting_algorithm.setDisabled(True)
             self.enter_bars_count.setDisabled(True)
@@ -259,8 +270,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.state = WAIT
                 self.btn_play_pause.setDisabled(False)
                 self.enter_bars_count.setStyleSheet('background-color: white;')
+
                 self.initialize_array()
                 self.change_sorting_algorithm()
+                width = self.canvas_label.width()
+                ost = width % len(self.array)
+                self.resize(self.width() - ost, self.height())
                 return
         self.state = ERROR
         self.btn_play_pause.setDisabled(True)
@@ -272,6 +287,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.array = list(range(1, self.array_size + 1))
         random.shuffle(self.array)
 
+        self.change_sorting_algorithm()
+        self.paint()
+
     def get_bars_max_count(self):
         """Возвращает максимальное количество столбиков на экране"""
         return (self.width() - 20) // MIN_BAR_WIDTH
@@ -281,11 +299,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         s_x, s_y = self.btn_reset.x(), self.btn_reset.y() + 10
         width, height = self.canvas_label.width(), self.canvas_label.height()
         if self.history_of_sorting:
-            array, first_red, second_red, first_blue, second_blue = self.history_of_sorting[step]
+            array, first_red, second_red, first_blue, second_blue, \
+                accesses = self.history_of_sorting[step]
+            self.access_to_list_count.setText(str(accesses))
         else:
             array = self.array
             first_red, second_red, first_blue, second_blue = -1, -1, -1, -1
         bar_width = width // len(array)
+
         for i in range(len(array)):
             color = QColor(144, 144, 144)
 
@@ -296,9 +317,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             qp.setBrush(color)
             qp.drawRect(s_x + i * bar_width, s_y, bar_width,
-                        -array[i] * (self.canvas_label.height() // self.array_size))
-
-        self.do_paint = False
+                        int(-array[i] * (self.canvas_label.height() / self.array_size)))
 
     def timer_tick(self):
         """Сработка таймера"""
@@ -307,17 +326,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.slider_steps.value() == self.slider_steps.maximum():
                 self.end_of_sorting()
 
-
     def sorting_history(self, array, first_red, second_red, first_blue, second_blue):
         """Добавляет в список текущее состояние сортируемого массива и подсвечиваемые элементы"""
-        self.history_of_sorting.append((array[:], first_red, second_red, first_blue, second_blue))
+        self.history_of_sorting.append((array[:], first_red, second_red, first_blue, second_blue,
+                                        array.get_accesses()))
 
     def change_sorting_algorithm(self):
         try:
             self.current_sorting_algorithm = SORTING_FUNCTIONS[
                 self.selecter_sorting_algorithm.currentText()]
             self.history_of_sorting.clear()
-            self.current_sorting_algorithm(self.array[:], self.sorting_history, 0,
+            self.history_of_sorting.append((self.array, -1, -1, -1, -1, 0))
+            self.current_sorting_algorithm(LoggedList(self.array[:]), self.sorting_history, 0,
                                            len(self.array) - 1)
             self.slider_steps.setMaximum(len(self.history_of_sorting) - 1)
             self.history_of_sorting.append((list(range(1, len(self.array))), -1, -1, -1, -1))
@@ -344,7 +364,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def delay_slider_changed(self):
         self.delay = self.slider_delay.value()
         self.timer.start(self.delay)
-
 
 
 if __name__ == '__main__':
