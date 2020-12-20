@@ -9,7 +9,7 @@ import sys
 
 SORTING_FUNCTIONS = {
     'пузырьком': bubble_sort,
-    'перемешиванием': shake_sort,
+    'шейкерная': shake_sort,
     'расческой': comb_sort,
     'вставками': insert_sort,
     'сортировка Шелла': shell_sort,
@@ -20,6 +20,10 @@ SORTING_FUNCTIONS = {
     'слиянием': merge_sort,
     'подсчетом': counting_sort,
     'гномья': gnome_sort
+}
+
+GAPS_TYPES_FOR_SHELL_SORT = {
+    # todo
 }
 
 PLAYING = 2
@@ -263,25 +267,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def change_array_size(self):
         self.array_size = str(self.enter_bars_count.text())
         if self.array_size.isdigit():
-            self.array_size = int(self.array_size)
-            if 1 < self.array_size:
-                if self.array_size > self.get_bars_max_count():
-                    self.enter_bars_count.setText(str(self.get_bars_max_count()))
-                self.state = WAIT
-                self.btn_play_pause.setDisabled(False)
-                self.enter_bars_count.setStyleSheet('background-color: white;')
+            try:
+                self.array_size = int(self.array_size)
+            except Exception:
+                print('ii')
+                self.array_size = 2
+                self.enter_bars_count.setText('2')
+            if self.array_size < 2:
+                self.array_size = 2
+                self.enter_bars_count.setText('2')
+            if self.array_size > self.get_bars_max_count():
+                self.enter_bars_count.setText(str(self.get_bars_max_count()))
+            self.state = WAIT
+            self.btn_play_pause.setDisabled(False)
+            self.enter_bars_count.setStyleSheet('background-color: white;')
 
-                self.initialize_array()
-                self.change_sorting_algorithm()
-                width = self.canvas_label.width()
-                ost = width % len(self.array)
-                self.resize(self.width() - ost, self.height())
-                return
-        self.state = ERROR
-        self.btn_play_pause.setDisabled(True)
-        self.enter_bars_count.setStyleSheet('background-color: #ff5858;'
-                                            'color: white;')
-
+            self.initialize_array()
+            self.change_sorting_algorithm()
+            width = self.canvas_label.width()
+            ost = width % len(self.array)
+            self.resize(self.width() - ost, self.height())
+            return
     def initialize_array(self):
         """Создает массив из заданного пользователем количества элементов"""
         self.array = list(range(1, self.array_size + 1))
@@ -305,7 +311,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             array = self.array
             first_red, second_red, first_blue, second_blue = -1, -1, -1, -1
-        bar_width = width // len(array)
+        bar_width = width // max(len(array), 2)
 
         for i in range(len(array)):
             color = QColor(144, 144, 144)
@@ -317,7 +323,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             qp.setBrush(color)
             qp.drawRect(s_x + i * bar_width, s_y, bar_width,
-                        int(-array[i] * (self.canvas_label.height() / self.array_size)))
+                        int(-array[i] * (self.canvas_label.height() / max(len(self.array), 2))))
 
     def timer_tick(self):
         """Сработка таймера"""
