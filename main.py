@@ -1,29 +1,100 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QApplication
-import random
-from PyQt5.QtCore import QPoint
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtCore import QTimer
-from sources.algorithms import *
+import random
 import sys
+
+
+def bubble_sort(array, sorting_history, *args):
+    # Сортировка пузырьком
+    n = len(array)
+    for i in range(n):
+        for j in range(n - i - 1):
+            sorting_history(array, j, j + 1, -1, -1)
+            if array[j] > array[j + 1]:
+                array[j], array[j + 1] = array[j + 1], array[j]
+    sorting_history(array, -1, -1, -1, -1)
+    return array
+
+
+def shake_sort(array, sorting_history, *args):
+    n = len(array)
+    left = 0
+    right = n - 1
+    while left <= right:
+        for i in range(left, right):
+            sorting_history(array, i, i + 1, -1, -1)
+            if array[i] > array[i + 1]:
+                array[i], array[i + 1] = array[i + 1], array[i]
+        right -= 1
+        for i in range(right, left, -1):
+            sorting_history(array, -1, -1, i, i + 1)
+            if array[i - 1] > array[i]:
+                array[i], array[i - 1] = array[i - 1], array[i]
+        left += 1
+    sorting_history(array, -1, -1, -1, -1)
+    return array
+
+
+def comb_sort(array, sorting_history, *args):
+    def get_next_gap(previous_gap):
+        next_gap = int(previous_gap / 1.247)
+        return next_gap if next_gap > 1 else 1
+
+    n = len(array)
+    gap = n
+    swapped = True
+
+    while gap != 1 or swapped:
+        gap = get_next_gap(gap)
+        swapped = False
+
+        for i in range(n - gap):
+            sorting_history(array, i, i + gap, -1, -1)
+            if array[i] > array[i + gap]:
+                array[i], array[i + gap] = array[i + gap], array[i]
+                swapped = True
+    sorting_history(array, -1, -1, -1, -1)
+    return array
+
+
+def gnome_sort(array, sorting_history, *args):
+    n = len(array)
+    i = 0
+    while i < n:
+        if array[i - 1] <= array[i] or i == 0:
+            sorting_history(array, i, i - 1, -1, -1)
+            i += 1
+        else:
+            sorting_history(array, i, i - 1, -1, -1)
+            array[i - 1], array[i] = array[i], array[i - 1]
+            i -= 1
+    sorting_history(array, -1, -1, -1, -1)
+    return array
+
+
+def quick_sort(array, sorting_history, left, right, *args):
+    if left >= right:
+        sorting_history(array, -1, -1, -1, -1)
+        return array
+    i = left
+    for j in range(left, right):
+        sorting_history(array, j, right, i, -1)
+        if array[j] < array[right]:
+            array[j], array[i] = array[i], array[j]
+            i += 1
+    array[i], array[right] = array[right], array[i]
+    quick_sort(array, sorting_history, i + 1, right)
+    quick_sort(array, sorting_history, left, i - 1)
+
 
 SORTING_FUNCTIONS = {
     'пузырьком': bubble_sort,
     'шейкерная': shake_sort,
     'расческой': comb_sort,
-    'вставками': insert_sort,
-    'сортировка Шелла': shell_sort,
-    'деревом': binary_insertion_sort,
-    'выбором': selection_sort,
-    'пирамидальная': heap_sort,
+    'гномья': gnome_sort,
     'быстрая': quick_sort,
-    'слиянием': merge_sort,
-    'подсчетом': counting_sort,
-    'гномья': gnome_sort
-}
-
-GAPS_TYPES_FOR_SHELL_SORT = {
-    # todo
 }
 
 PLAYING = 2
@@ -37,6 +108,9 @@ MIN_BAR_WIDTH = 2
 
 
 class LoggedList(list):
+    """Класс логированного списка, который запоминает общее
+     кол-во обращений к его элементам о индексу"""
+
     def __init__(self, *args, **kwargs):
         super(LoggedList, self).__init__(*args, **kwargs)
         self.get_item_count = 0
@@ -46,6 +120,7 @@ class LoggedList(list):
         return super(LoggedList, self).__getitem__(item)
 
     def get_accesses(self):
+        """Получить количество обращений  к списку"""
         return self.get_item_count
 
 
@@ -62,7 +137,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.spacerItem = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Expanding,
-                                           QtWidgets.QSizePolicy.Minimum)
+                                                QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(self.spacerItem)
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,
@@ -81,15 +156,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addLayout(self.horizontalLayout)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        # self.label_2 = QtWidgets.QLabel(self.centralwidget)
-        # self.label_2.setObjectName("label_2")
-        # self.horizontalLayout_2.addWidget(self.label_2)
-        # self.comparsions_count = QtWidgets.QLineEdit(self.centralwidget)
-        # self.comparsions_count.setAlignment(
-        #     QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        # self.comparsions_count.setReadOnly(True)
-        # self.comparsions_count.setObjectName("comparsions_count")
-        # self.horizontalLayout_2.addWidget(self.comparsions_count)
         self.horizontalLayout_4.addLayout(self.horizontalLayout_2)
 
         self.verticalLayout.addLayout(self.horizontalLayout_4)
@@ -178,7 +244,6 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Алгоритмы сортировки"))
         self.label.setText(_translate("MainWindow", "Доступов к массиву:"))
-        # self.label_2.setText(_translate("MainWindow", "Сравнений:"))
         self.canvas_label.setText(_translate("MainWindow", ""))
         self.btn_reset.setText(_translate("MainWindow", "Сброс"))
         self.btn_play_pause.setText(_translate("MainWindow", "Старт"))
@@ -199,7 +264,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_reset.clicked.connect(self.btn_reset_clicked)
         self.action_2.triggered.connect(self.initialize_array)
         self.action_exit.triggered.connect(sys.exit)
-
 
         self.selecter_sorting_algorithm.currentIndexChanged.connect(self.change_sorting_algorithm)
 
@@ -244,6 +308,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.repaint()
 
     def btn_play_pause_clicked(self):
+        """Нажатие кнопки паузы, проигрывания"""
         if self.btn_play_pause.text() == 'Старт':
             if self.slider_steps.value() == self.slider_steps.maximum():
                 self.slider_steps.setValue(self.slider_steps.minimum())
@@ -258,6 +323,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.state = PAUSE
 
     def btn_reset_clicked(self):
+        """Нажатие кнопки сброса"""
         self.state = WAIT
         self.change_sorting_algorithm()
         self.slider_steps.setValue(0)
@@ -265,12 +331,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_play_pause.setText('Старт')
 
     def change_array_size(self):
+        """Срабатывает при смене кол-ва элементов"""
         self.array_size = str(self.enter_bars_count.text())
         if self.array_size.isdigit():
             try:
                 self.array_size = int(self.array_size)
             except Exception:
-                print('ii')
                 self.array_size = 2
                 self.enter_bars_count.setText('2')
             if self.array_size < 2:
@@ -288,6 +354,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ost = width % len(self.array)
             self.resize(self.width() - ost, self.height())
             return
+
     def initialize_array(self):
         """Создает массив из заданного пользователем количества элементов"""
         self.array = list(range(1, self.array_size + 1))
@@ -301,12 +368,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return (self.width() - 20) // MIN_BAR_WIDTH
 
     def draw_bars(self, qp):
+        """Рисуем столбики"""
         step = self.slider_steps.value()
         s_x, s_y = self.btn_reset.x(), self.btn_reset.y() + 10
         width, height = self.canvas_label.width(), self.canvas_label.height()
         if self.history_of_sorting:
             array, first_red, second_red, first_blue, second_blue, \
-                accesses = self.history_of_sorting[step]
+            accesses = self.history_of_sorting[step]
             self.access_to_list_count.setText(str(accesses))
         else:
             array = self.array
@@ -338,21 +406,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                         array.get_accesses()))
 
     def change_sorting_algorithm(self):
-        try:
-            self.current_sorting_algorithm = SORTING_FUNCTIONS[
-                self.selecter_sorting_algorithm.currentText()]
-            self.history_of_sorting.clear()
-            self.history_of_sorting.append((self.array, -1, -1, -1, -1, 0))
-            self.current_sorting_algorithm(LoggedList(self.array[:]), self.sorting_history, 0,
-                                           len(self.array) - 1)
-            self.slider_steps.setMaximum(len(self.history_of_sorting) - 1)
-            self.history_of_sorting.append((list(range(1, len(self.array))), -1, -1, -1, -1))
-            self.slider_steps.setValue(0)
-
-        except Exception as e:
-            print(e)
+        """Срабатывает при смене сортирующего алгоритма"""
+        self.current_sorting_algorithm = SORTING_FUNCTIONS[
+            self.selecter_sorting_algorithm.currentText()]
+        self.history_of_sorting.clear()
+        self.history_of_sorting.append((self.array, -1, -1, -1, -1, 0))
+        self.current_sorting_algorithm(LoggedList(self.array[:]), self.sorting_history, 0,
+                                       len(self.array) - 1)
+        self.slider_steps.setMaximum(len(self.history_of_sorting) - 1)
+        self.history_of_sorting.append((list(range(1, len(self.array))), -1, -1, -1, -1))
+        self.slider_steps.setValue(0)
 
     def end_of_sorting(self):
+        """Конец сортировки"""
         self.state = WAIT
         self.btn_play_pause.setText('Старт')
         self.enable_interface()
@@ -368,6 +434,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.selecter_sorting_algorithm.setDisabled(True)
 
     def delay_slider_changed(self):
+        """Изменяем задержку при передвижении полунка"""
         self.delay = self.slider_delay.value()
         self.timer.start(self.delay)
 
