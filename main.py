@@ -434,7 +434,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.selecter_sorting_algorithm.setDisabled(True)
 
     def delay_slider_changed(self):
-        """Изменяем задержку при передвижении полунка"""
+        """Изменяем задержку при передвижении ползунка"""
         self.delay = self.slider_delay.value()
         self.timer.start(self.delay)
 
